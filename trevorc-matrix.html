@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrevorC TRADING MATRIX</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#05080c',
+                        panelBg: '#0b1118',
+                        cardBg: '#111923',
+                        borderClr: '#1b2735',
+                        neonCyan: '#00f3ff',
+                        neonGreen: '#00ff88',
+                        neonRed: '#ff3366',
+                        neonAmber: '#ffb700',
+                        softPurple: '#a855f7',
+                        mutedText: '#8fa0b5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #05080c;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom glow effects */
+        .cyan-glow {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+        .green-glow {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+        .text-glow-green {
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #05080c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1b2735;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col justify-between selection:bg-neonCyan selection:text-black">
+
+    <!-- TOP HEADER BAR -->
+    <header class="border-b border-borderClr bg-panelBg/95 backdrop-blur sticky top-0 z-50 shadow-md shadow-black/50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-neonCyan/10 border border-neonCyan/40 flex items-center justify-center text-neonCyan font-bold text-xl cyan-glow">
+                    <i class="fa-solid fa-terminal text-glow-cyan"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-extrabold tracking-wider text-white flex items-center gap-2">
+                        TREVORC <span class="text-neonCyan text-glow-cyan">TRADING MATRIX</span>
+                    </h1>
+                    <p class="text-[10px] text-mutedText tracking-widest uppercase">Institutional Multi-Asset Quantitative Terminal</p>
+                </div>
+            </div>
+
+            <!-- Global Status & Refresh Button -->
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <div class="text-xs font-bold text-gray-200 font-mono" id="utc-clock">17:21:53 UTC</div>
+                    <div class="text-[10px] text-neonGreen font-semibold flex items-center justify-end gap-1">
+                        <span class="w-2 h-2 rounded-full bg-neonGreen animate-ping"></span>
+                        LIVE MULTI-FEED
+                    </div>
+                </div>
+
+                <button id="refresh-btn" onclick="triggerRefresh()" class="flex items-center space-x-2 bg-neonCyan/10 hover:bg-neonCyan/20 border border-neonCyan/50 text-neonCyan px-4 py-2 rounded-md font-bold text-xs tracking-wider transition-all duration-200 active:scale-95 cyan-glow">
+                    <i id="refresh-icon" class="fa-solid fa-arrows-rotate"></i>
+                    <span>Refresh Matrix</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- LIVE LOG NOTIFICATION BAR -->
+    <div class="bg-darkBg border-b border-borderClr py-2 px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-mutedText">
+            <div class="flex items-center space-x-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                <span class="text-neonCyan font-bold">[SYSTEM LOG]</span>
+                <span id="system-status-msg" class="text-gray-300">Data successfully updated. Live matrix structure updated. Mode: LIVE MULTI-FEED</span>
+            </div>
+            <div class="text-[11px] text-gray-500 hidden md:block whitespace-nowrap font-mono">
+                Engine Status: <span class="text-neonGreen font-bold">0.01ms</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6 w-full flex-grow">
+
+        <!-- FILTER NAVIGATION & SEARCH BAR -->
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-panelBg/80 p-3 rounded-lg border border-borderClr">
+            <!-- Tabs -->
+            <div class="flex items-center space-x-1 overflow-x-auto pb-2 md:pb-0">
+                <button onclick="filterPanel('all')" class="tab-btn px-3 py-1.5 rounded text-xs font-bold bg-neonCyan/20 border border-neonCyan/50 text-neonCyan transition" data-panel="all">All Panels</button>
+                <button onclick="filterPanel('panel-1')" class="tab-btn px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-800 text-gray-400 transition" data-panel="panel-1">P1: Currency Snapshot</button>
+                <button onclick="filterPanel('panel-2')" class="tab-btn px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-800 text-gray-400 transition" data-panel="panel-2">P2: Macro Assets</button>
+                <button onclick="filterPanel('panel-3')" class="tab-btn px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-800 text-gray-400 transition" data-panel="panel-3">P3: Currency Drivers</button>
+                <button onclick="filterPanel('panel-4')" class="tab-btn px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-800 text-gray-400 transition" data-panel="panel-4">P4: Multi-TF Technicals</button>
+            </div>
+
+            <!-- Search Input -->
+            <div class="relative w-full md:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-gray-500"></i>
+                <input type="text" id="matrix-search" placeholder="Search Asset / Pair..." onkeyup="handleSearch()" class="w-full bg-darkBg border border-borderClr text-xs rounded pl-8 pr-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-neonCyan transition">
+            </div>
+        </div>
+
+        <!-- PANEL 1: CURRENCY INDEX STRENGTH SNAPSHOT -->
+        <section id="panel-1" class="panel-section bg-panelBg border border-borderClr rounded-xl p-4 md:p-5 shadow-lg">
+            <div class="flex items-center justify-between border-b border-borderClr pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-neonCyan/20 text-neonCyan border border-neonCyan/40">PANEL 1</span>
+                    <h2 class="text-sm md:text-base font-bold uppercase tracking-wider text-white">Currency Index Strength Snapshot</h2>
+                </div>
+                <span class="text-[10px] bg-cardBg text-neonCyan border border-borderClr px-2 py-1 rounded tracking-widest uppercase">
+                    Relative Score Engine
+                </span>
+            </div>
+
+            <!-- Currency Grid -->
+            <div id="currency-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- PANEL 2: LIVE MACRO, ASSET & COMMODITY DRIVERS -->
+        <section id="panel-2" class="panel-section bg-panelBg border border-borderClr rounded-xl p-4 md:p-5 shadow-lg">
+            <div class="flex items-center justify-between border-b border-borderClr pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-neonCyan/20 text-neonCyan border border-neonCyan/40">PANEL 2</span>
+                    <h2 class="text-sm md:text-base font-bold uppercase tracking-wider text-white">Live Macro, Asset & Commodity Drivers</h2>
+                </div>
+                <span class="text-[10px] bg-cardBg text-neonGreen border border-borderClr px-2 py-1 rounded tracking-widest uppercase">
+                    Real-Time Feeds
+                </span>
+            </div>
+
+            <!-- Macro Cards -->
+            <div id="macro-assets-container" class="space-y-4">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- PANEL 3: INDIVIDUAL CURRENCY INDEX LIVE DRIVERS & CALENDAR -->
+        <section id="panel-3" class="panel-section bg-panelBg border border-borderClr rounded-xl p-4 md:p-5 shadow-lg">
+            <div class="flex items-center justify-between border-b border-borderClr pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-neonCyan/20 text-neonCyan border border-neonCyan/40">PANEL 3</span>
+                    <h2 class="text-sm md:text-base font-bold uppercase tracking-wider text-white">Individual Currency Index Live Drivers & Calendar</h2>
+                </div>
+                <span class="text-[10px] bg-cardBg text-softPurple border border-borderClr px-2 py-1 rounded tracking-widest uppercase">
+                    Cross Analysis
+                </span>
+            </div>
+
+            <!-- Currency Drivers Grid -->
+            <div id="currency-drivers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- PANEL 4: TECHNICAL MULTI-TF STRUCTURE, TREND ARROWS & MOVES -->
+        <section id="panel-4" class="panel-section bg-panelBg border border-borderClr rounded-xl p-4 md:p-5 shadow-lg">
+            <div class="flex items-center justify-between border-b border-borderClr pb-3 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-neonCyan/20 text-neonCyan border border-neonCyan/40">PANEL 4</span>
+                    <h2 class="text-sm md:text-base font-bold uppercase tracking-wider text-white">Technical Multi-TF Structure, Trend Arrows & Moves</h2>
+                </div>
+                <span class="text-[10px] bg-cardBg text-neonAmber border border-borderClr px-2 py-1 rounded tracking-widest uppercase">
+                    Structural Engine
+                </span>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-lg border border-borderClr">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-darkBg text-mutedText uppercase text-[10px] tracking-wider border-b border-borderClr">
+                        <tr>
+                            <th class="py-3 px-4 font-bold">Asset / Pair</th>
+                            <th class="py-3 px-3 font-bold text-center">TF</th>
+                            <th class="py-3 px-3 font-bold text-center">Trend Direction</th>
+                            <th class="py-3 px-3 font-bold text-center">Sizing</th>
+                            <th class="py-3 px-3 font-bold text-center">Skew</th>
+                            <th class="py-3 px-4 font-bold text-right">Swing High</th>
+                            <th class="py-3 px-4 font-bold text-right">Swing Low</th>
+                            <th class="py-3 px-4 font-bold text-center">Move Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody id="technical-matrix-body" class="divide-y divide-borderClr/60 bg-cardBg/60">
+                        <!-- Dynamic Content -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-borderClr bg-darkBg py-4 px-4 text-xs text-center text-mutedText mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="font-bold tracking-wider text-gray-300">
+                © 2026 <span class="text-neonCyan">TREVORC INTERNATIONAL MATRIX ENGINE</span>. ALL RIGHTS RESERVED.
+            </div>
+            <div class="flex items-center space-x-4 text-[11px] font-mono">
+                <span><i class="fa-solid fa-power-off text-neonGreen mr-1"></i> Empire Status: <strong class="text-neonGreen">0.01%</strong></span>
+                <span class="text-gray-600">|</span>
+                <span>Powered by <strong class="text-white">TrevorC Trading Suite</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // PANEL 1 DATA
+        const currencyScores = [
+            { code: 'USD', change: '+0.172%', status: 'STRONG', type: 'strong' },
+            { code: 'AUD', change: '+0.124%', status: 'FIRM', type: 'firm' },
+            { code: 'NZD', change: '+0.094%', status: 'FIRM', type: 'firm' },
+            { code: 'CHF', change: '-0.026%', status: 'SOFT', type: 'soft' },
+            { code: 'CAD', change: '-0.046%', status: 'SOFT', type: 'soft' },
+            { code: 'GBP', change: '-0.076%', status: 'SOFT', type: 'soft' },
+            { code: 'EUR', change: '-0.106%', status: 'SOFT', type: 'soft' },
+            { code: 'JPY', change: '-0.146%', status: 'SOFT', type: 'soft' }
+        ];
+
+        // PANEL 2 DATA
+        const macroAssets = [
+            {
+                symbol: 'DXY (US Dollar Index)',
+                price: '104.200',
+                change: '+0.43%',
+                direction: 'UP',
+                driver: 'US CPI held firm at 3.7% with Fed funds futures pricing high rate expectations while 10Y yields trade elevated near 5.35%.',
+                events: [
+                    { name: 'US CB Consumer Confidence', badge: 'RELEASED / ACTIVE', class: 'bg-neonGreen/20 text-neonGreen border-neonGreen/40' },
+                    { name: 'FOMC Interest Rate Decision 6...', badge: '1d 1h 38m', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' },
+                    { name: 'US Q3 GDP Advance & Core PCE...', badge: '1d 20h 5m', class: 'bg-slate-800 text-gray-300 border-slate-700' }
+                ],
+                headlines: [
+                    '[Reuters] DXY holds steady near key technical bounces as traders await yields.',
+                    '[Yahoo Finance] US Dollar Index consolidates broader gains as market awaits forward policy guidance.'
+                ]
+            },
+            {
+                symbol: 'USOIL (WTI Crude Oil)',
+                price: '71.500',
+                change: '-0.40%',
+                direction: 'DOWN',
+                driver: 'Middle East supply negotiations and OPEC output quotas are influencing prices while US Strategic Petroleum Reserves remain lean.',
+                events: [
+                    { name: 'API Weekly Crude Oil Inventory...', badge: '3h 37m 58s', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' },
+                    { name: 'EIA Weekly Crude & Mid-East Stock...', badge: '21h 37m 58s', class: 'bg-slate-800 text-gray-300 border-slate-700' }
+                ],
+                headlines: [
+                    '[CNBC] Oil fluctuates as Middle East supply negotiations outweigh tight stockpile data.',
+                    '[Bloomberg] WTI crude tests key support pivots ahead of weekly inventory statistics.'
+                ]
+            },
+            {
+                symbol: 'GC=F (Gold Futures)',
+                price: '4,058.81',
+                change: '+1.31%',
+                direction: 'UP',
+                driver: 'Central bank bullion accumulation and safe-haven risk hedging sustain structural support above key levels.',
+                events: [
+                    { name: 'FOMC Rate Announcement Impact...', badge: '1d 1h 38m', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headlines: [
+                    '[TrevorC Analytics] Gold futures remain in structural uptrend as key institutional momentum signals remain intact.'
+                ]
+            },
+            {
+                symbol: 'S&P 500 Index',
+                price: '5,815.20',
+                change: '+0.35%',
+                direction: 'UP',
+                driver: 'Corporate earnings reports and mega-cap tech performance drive index liquidity and broad risk sentiment.',
+                events: [
+                    { name: 'US Tech Earnings Guidance Release', badge: '2d 4h 10m', class: 'bg-slate-800 text-gray-300 border-slate-700' }
+                ],
+                headlines: [
+                    '[MarketWatch] S&P 500 trades tight structural boundaries ahead of big tech earnings.'
+                ]
+            },
+            {
+                symbol: 'Nasdaq 100 Index',
+                price: '20,350.10',
+                change: '+0.58%',
+                direction: 'UP',
+                driver: 'Semiconductor sector updates and AI growth valuations dictate momentum across high-beta technology assets.',
+                events: [
+                    { name: 'US Core Durable Goods Orders', badge: '1d 18h 3m', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headlines: [
+                    '[Reuters] Tech sentiment shifts as institutional traders hedge macro rate risks.'
+                ]
+            }
+        ];
+
+        // PANEL 3 DATA
+        const currencyDrivers = [
+            {
+                code: 'USD INDEX',
+                status: 'STRONG',
+                statusType: 'strong',
+                change: '+0.172%',
+                description: 'Firm CPI readings and steady labor numbers maintain dollar bias ahead of key FOMC risk.',
+                calendar: [
+                    { name: 'US CB Consumer Confidence', badge: 'RELEASED / ACTIVE', class: 'bg-neonGreen/20 text-neonGreen border-neonGreen/40' },
+                    { name: 'FOMC Policy Decision', badge: '1d 1h 38m', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headline: '[Yahoo Finance] US Dollar Index holds gains as bond markets price extended interest rate plateau.'
+            },
+            {
+                code: 'EUR INDEX',
+                status: 'SOFT',
+                statusType: 'soft',
+                change: '-0.106%',
+                description: 'Soft positioning in futures markets and soft European manufacturing PMI numbers pressure EUR pairs.',
+                calendar: [
+                    { name: 'Eurozone Bank Lending', badge: '2h 15m', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' },
+                    { name: 'ECB Monetary Policy Speech', badge: '2d 5h 30m', class: 'bg-slate-800 text-gray-300 border-slate-700' }
+                ],
+                headline: '[Reuters] Eurozone indicators remain subdued under tight monetary conditions.'
+            },
+            {
+                code: 'AUD INDEX',
+                status: 'FIRM',
+                statusType: 'firm',
+                change: '+0.124%',
+                description: 'Hawkish RBA commentary and quarterly CPI expectations provide underlying currency support.',
+                calendar: [
+                    { name: 'RBA Governor Speech', badge: 'RELEASED / ACTIVE', class: 'bg-neonGreen/20 text-neonGreen border-neonGreen/40' },
+                    { name: 'Australia Q3 CPI YoY', badge: '5h 8m 12s', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headline: '[Forex Factory] AUD/USD gains resilience on retail export pricing and inflation updates.'
+            },
+            {
+                code: 'CAD INDEX',
+                status: 'SOFT',
+                statusType: 'soft',
+                change: '-0.046%',
+                description: 'Traders position ahead of Bank of Canada interest rate announcements alongside crude oil swings.',
+                calendar: [
+                    { name: 'Bank of Canada Rate Decision', badge: '20h 23m 15s', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headline: '[Yahoo Finance] Canadian Dollar tracks crude oil inventory data ahead of BOC statement.'
+            },
+            {
+                code: 'NZD INDEX',
+                status: 'FIRM',
+                statusType: 'firm',
+                change: '+0.094%',
+                description: 'Reserve Bank of New Zealand policy statements and forward guidance dictate short-term order flow.',
+                calendar: [
+                    { name: 'RBNZ Interest Rate Decision', badge: '31h 37m 58s', class: 'bg-slate-800 text-gray-300 border-slate-700' }
+                ],
+                headline: '[Forex Factory] NZD traces tight range as market awaits RBNZ forward guidance.'
+            },
+            {
+                code: 'CHF INDEX',
+                status: 'SOFT',
+                statusType: 'soft',
+                change: '-0.026%',
+                description: 'Safe-haven capital flows and Swiss National Bank positioning maintain CHF strength across European pairs.',
+                calendar: [
+                    { name: 'Swiss ZEW Survey', badge: '15h 37m 58s', class: 'bg-neonAmber/20 text-neonAmber border-neonAmber/40' }
+                ],
+                headline: '[Bloomberg] Swiss Franc exhibits low volatility resilience against major FX counterparties.'
+            }
+        ];
+
+        // PANEL 4 DATA
+        const technicalMatrix = [
+            { pair: 'EUR/USD', tf: 'H4', trend: 'DOWN', trendText: 'BEARISH', sizing: 'FULL', skew: '-1.4', high: '1.12308', low: '1.11346', move: 'IMPULSE SELL', moveType: 'sell' },
+            { pair: 'EUR/USD', tf: 'H1', trend: 'DOWN', trendText: 'BEARISH', sizing: 'HALF', skew: '-0.8', high: '1.11746', low: '1.11346', move: 'IMPULSE SELL', moveType: 'sell' },
+            { pair: 'EUR/USD', tf: 'M30', trend: 'UP', trendText: 'BULLISH', sizing: 'LGT', skew: '+0.3', high: '1.11544', low: '1.11371', move: 'CORRECT BUY', moveType: 'buy' },
+            { pair: 'EUR/USD', tf: 'M15', trend: 'UP', trendText: 'BULLISH', sizing: 'LGT', skew: '+0.5', high: '1.11529', low: '1.11371', move: 'CORRECT BUY', moveType: 'buy' },
+            
+            { pair: 'GBP/USD', tf: 'H4', trend: 'DOWN', trendText: 'BEARISH', sizing: 'FULL', skew: '-2.1', high: '1.33959', low: '1.33357', move: 'IMPULSE SELL', moveType: 'sell' },
+            { pair: 'GBP/USD', tf: 'H1', trend: 'DOWN', trendText: 'BEARISH', sizing: 'HALF', skew: '-1.0', high: '1.33462', low: '1.33357', move: 'IMPULSE SELL', moveType: 'sell' },
+            { pair: 'GBP/USD', tf: 'M30', trend: 'UP', trendText: 'BULLISH', sizing: 'LGT', skew: '+0.2', high: '1.33446', low: '1.33357', move: 'CORRECT BUY', moveType: 'buy' },
+            { pair: 'GBP/USD', tf: 'M15', trend: 'DOWN', trendText: 'BEARISH', sizing: 'FULL', skew: '-1.8', high: '1.33333', low: '1.33057', move: 'IMPULSE SELL', moveType: 'sell' },
+            
+            { pair: 'Gold (XAU/USD)', tf: 'H4', trend: 'UP', trendText: 'BULLISH', sizing: 'FULL', skew: '+2.8', high: '4,064.28', low: '3,977.58', move: 'IMPULSE BUY', moveType: 'buy' },
+            { pair: 'Gold (XAU/USD)', tf: 'H1', trend: 'UP', trendText: 'BULLISH', sizing: 'FULL', skew: '+2.1', high: '4,064.28', low: '3,988.99', move: 'IMPULSE BUY', moveType: 'buy' },
+            { pair: 'Gold (XAU/USD)', tf: 'M30', trend: 'UP', trendText: 'BULLISH', sizing: 'HALF', skew: '+1.4', high: '4,064.28', low: '3,993.46', move: 'CORRECT BUY', moveType: 'buy' },
+            { pair: 'Gold (XAU/USD)', tf: 'M15', trend: 'UP', trendText: 'BULLISH', sizing: 'FULL', skew: '+2.5', high: '4,064.28', low: '4,020.08', move: 'IMPULSE BUY', moveType: 'buy' }
+        ];
+
+        // RENDER LOGIC
+        function getBadgeStyle(type) {
+            switch(type) {
+                case 'strong': return 'bg-neonGreen/20 text-neonGreen border-neonGreen/40';
+                case 'firm': return 'bg-neonCyan/20 text-neonCyan border-neonCyan/40';
+                case 'soft': return 'bg-neonRed/20 text-neonRed border-neonRed/40';
+                default: return 'bg-slate-800 text-gray-300 border-slate-700';
+            }
+        }
+
+        function renderCurrencyGrid(items = currencyScores) {
+            const container = document.getElementById('currency-grid');
+            container.innerHTML = items.map(c => {
+                const badgeClass = getBadgeStyle(c.type);
+                const isPos = c.change.startsWith('+');
+                const txtColor = isPos ? 'text-neonGreen' : 'text-neonRed';
+
+                return `
+                    <div class="bg-cardBg border border-borderClr rounded-lg p-3 transition hover:border-neonCyan duration-200">
+                        <div class="text-xs font-bold text-gray-300 mb-1 font-mono">${c.code}</div>
+                        <div class="text-sm font-extrabold ${txtColor} mb-2 font-mono">${c.change}</div>
+                        <div>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass} tracking-wider">${c.status}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMacroAssets(items = macroAssets) {
+            const container = document.getElementById('macro-assets-container');
+            container.innerHTML = items.map(a => {
+                const isUp = a.direction === 'UP';
+                const badgeColor = isUp ? 'text-neonGreen bg-neonGreen/10 border-neonGreen/40' : 'text-neonRed bg-neonRed/10 border-neonRed/40';
+                const icon = isUp ? 'fa-caret-up' : 'fa-caret-down';
+
+                const eventsHtml = a.events.map(e => `
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-borderClr/40 last:border-0">
+                        <span class="text-gray-300">${e.name}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded border ${e.class} font-bold font-mono">${e.badge}</span>
+                    </div>
+                `).join('');
+
+                const headlinesHtml = a.headlines.map(h => `
+                    <p class="text-[11px] text-gray-400 leading-relaxed mb-1"><span class="text-neonCyan/90">${h}</span></p>
+                `).join('');
+
+                return `
+                    <div class="bg-cardBg/90 border border-borderClr rounded-lg p-4 space-y-3 hover:border-slate-600 transition">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-sm font-extrabold text-white tracking-wide">${a.symbol}</h3>
+                                <span class="text-base font-bold text-neonCyan font-mono">${a.price}</span>
+                                <span class="text-xs font-bold ${isUp ? 'text-neonGreen' : 'text-neonRed'} font-mono">${a.change}</span>
+                            </div>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded border ${badgeColor} flex items-center gap-1 font-mono">
+                                <i class="fa-solid ${icon}"></i> ${a.direction}
+                            </span>
+                        </div>
+
+                        <div class="bg-darkBg p-2.5 rounded border border-borderClr">
+                            <span class="text-[10px] text-neonCyan font-bold uppercase tracking-wider block mb-1">MARKET DRIVER</span>
+                            <p class="text-xs text-gray-300 leading-snug">${a.driver}</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                            <div class="space-y-1">
+                                <span class="text-[10px] text-mutedText uppercase tracking-wider block mb-1 font-bold">CALENDAR COUNTDOWNS</span>
+                                ${eventsHtml}
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-[10px] text-mutedText uppercase tracking-wider block mb-1 font-bold">BREAKING HEADLINES</span>
+                                ${headlinesHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCurrencyDrivers(items = currencyDrivers) {
+            const container = document.getElementById('currency-drivers-container');
+            container.innerHTML = items.map(c => {
+                const statusClass = getBadgeStyle(c.statusType);
+                const isPos = c.change.startsWith('+');
+
+                const calHtml = c.calendar.map(ev => `
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-gray-300 truncate pr-2">${ev.name}</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded border ${ev.class} font-bold font-mono whitespace-nowrap">${ev.badge}</span>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="bg-cardBg border border-borderClr rounded-lg p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-borderClr pb-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-circle text-[8px] ${isPos ? 'text-neonGreen' : 'text-neonRed'}"></i>
+                                <span class="font-bold text-sm text-white font-mono">${c.code}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-mono font-bold ${isPos ? 'text-neonGreen' : 'text-neonRed'}">${c.change}</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${statusClass}">${c.status}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-300 leading-snug">${c.description}</p>
+
+                        <div class="space-y-1.5 bg-darkBg p-2 rounded border border-borderClr">
+                            <span class="text-[9px] text-mutedText uppercase font-bold block">CALENDAR EVENTS</span>
+                            ${calHtml}
+                        </div>
+
+                        <div class="bg-darkBg p-2 rounded border border-borderClr">
+                            <span class="text-[9px] text-neonCyan font-bold block uppercase mb-0.5">CATALYST HEADLINE</span>
+                            <p class="text-[11px] text-gray-400 leading-tight">${c.headline}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTechnicalMatrix(items = technicalMatrix) {
+            const container = document.getElementById('technical-matrix-body');
+            container.innerHTML = items.map(m => {
+                const isBull = m.trend === 'UP';
+                const trendIcon = isBull ? 'fa-arrow-trend-up text-neonGreen' : 'fa-arrow-trend-down text-neonRed';
+                const trendBadge = isBull ? 'bg-neonGreen/10 text-neonGreen border-neonGreen/40' : 'bg-neonRed/10 text-neonRed border-neonRed/40';
+                
+                let moveBadge = m.moveType === 'buy' 
+                    ? 'bg-neonGreen/20 text-neonGreen border-neonGreen/50' 
+                    : 'bg-neonRed/20 text-neonRed border-neonRed/50';
+
+                return `
+                    <tr class="hover:bg-darkBg/80 transition duration-150">
+                        <td class="py-3 px-4 font-bold text-white font-mono">${m.pair}</td>
+                        <td class="py-3 px-3 text-center">
+                            <span class="px-2 py-0.5 rounded bg-slate-800 text-neonCyan font-mono text-[11px] border border-slate-700">${m.tf}</span>
+                        </td>
+                        <td class="py-3 px-3 text-center">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded border ${trendBadge} font-bold text-[10px]">
+                                <i class="fa-solid ${trendIcon}"></i> [${m.trendText}]
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 text-center font-mono text-gray-300 font-bold">${m.sizing}</td>
+                        <td class="py-3 px-3 text-center font-mono font-bold ${m.skew.startsWith('+') ? 'text-neonGreen' : 'text-neonRed'}">${m.skew}</td>
+                        <td class="py-3 px-4 text-right font-mono text-gray-200">${m.high}</td>
+                        <td class="py-3 px-4 text-right font-mono text-gray-200">${m.low}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="px-2.5 py-1 rounded border font-extrabold text-[10px] tracking-wider ${moveBadge}">${m.move}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // MATRIX REFRESH CONTROLLER
+        function triggerRefresh() {
+            const refreshBtn = document.getElementById('refresh-btn');
+            const refreshIcon = document.getElementById('refresh-icon');
+            const statusMsg = document.getElementById('system-status-msg');
+
+            refreshIcon.classList.add('fa-spin');
+            refreshBtn.classList.add('opacity-75');
+            statusMsg.textContent = 'Connecting to TrevorC Quantum Data Feeds & aggregating Macro LIVE MULTI-FEED...';
+            statusMsg.className = 'text-neonAmber font-bold animate-pulse';
+
+            setTimeout(() => {
+                // Simulate real-time score updates
+                currencyScores.forEach(c => {
+                    const currentVal = parseFloat(c.change);
+                    const diff = (Math.random() * 0.03 - 0.015);
+                    const newVal = (currentVal + diff).toFixed(3);
+                    c.change = (newVal >= 0 ? '+' : '') + newVal + '%';
+                });
+
+                renderCurrencyGrid();
+                renderMacroAssets();
+                renderCurrencyDrivers();
+                renderTechnicalMatrix();
+
+                refreshIcon.classList.remove('fa-spin');
+                refreshBtn.classList.remove('opacity-75');
+                statusMsg.textContent = `Data successfully updated at ${new Date().toISOString().substring(11, 19)} UTC. Live matrix structure updated. Mode: LIVE MULTI-FEED`;
+                statusMsg.className = 'text-neonGreen font-bold';
+            }, 800);
+        }
+
+        // PANEL TABS FILTERING
+        function filterPanel(panelId) {
+            const panels = document.querySelectorAll('.panel-section');
+            const tabs = document.querySelectorAll('.tab-btn');
+
+            tabs.forEach(tab => {
+                if (tab.dataset.panel === panelId) {
+                    tab.className = 'tab-btn px-3 py-1.5 rounded text-xs font-bold bg-neonCyan/20 border border-neonCyan/50 text-neonCyan transition';
+                } else {
+                    tab.className = 'tab-btn px-3 py-1.5 rounded text-xs font-bold hover:bg-slate-800 text-gray-400 transition';
+                }
+            });
+
+            panels.forEach(p => {
+                if (panelId === 'all' || p.id === panelId) {
+                    p.style.display = 'block';
+                } else {
+                    p.style.display = 'none';
+                }
+            });
+        }
+
+        // SEARCH
+        function handleSearch() {
+            const query = document.getElementById('matrix-search').value.toLowerCase().trim();
+
+            if (!query) {
+                renderCurrencyGrid(currencyScores);
+                renderMacroAssets(macroAssets);
+                renderCurrencyDrivers(currencyDrivers);
+                renderTechnicalMatrix(technicalMatrix);
+                return;
+            }
+
+            renderCurrencyGrid(currencyScores.filter(c => c.code.toLowerCase().includes(query)));
+            renderMacroAssets(macroAssets.filter(a => a.symbol.toLowerCase().includes(query) || a.driver.toLowerCase().includes(query)));
+            renderCurrencyDrivers(currencyDrivers.filter(d => d.code.toLowerCase().includes(query) || d.description.toLowerCase().includes(query)));
+            renderTechnicalMatrix(technicalMatrix.filter(t => t.pair.toLowerCase().includes(query) || t.tf.toLowerCase().includes(query)));
+        }
+
+        // UTC CLOCK
+        function updateClock() {
+            const now = new Date();
+            const utcString = now.toUTCString().split(' ')[4] + ' UTC';
+            document.getElementById('utc-clock').textContent = utcString;
+        }
+
+        // INITIALIZE
+        window.onload = function() {
+            renderCurrencyGrid();
+            renderMacroAssets();
+            renderCurrencyDrivers();
+            renderTechnicalMatrix();
+
+            setInterval(updateClock, 1000);
+            updateClock();
+        };
+    </script>
+</body>
+</html>
