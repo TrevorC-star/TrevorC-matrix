@@ -304,18 +304,7 @@
                 driver: 'Central bank bullion accumulation and safe-haven risk hedging sustain structural support above key levels.',
                 events: [
                    { 
-  name: 'FOMC Rate Announcement Impact...', 
-  badge: (() => {
-    // Target: Today's FOMC at 20:00 CAT (8:00 PM Zimbabwe Time)
-    const fomcTime = new Date("2026-10-28T20:00:00+02:00").getTime();
-    const diff = fomcTime - Date.now();
-    if (diff <= 0) return "RELEASED";
-    const h = Math.floor(diff / (1000 * 60 * 60));
-    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${h}h ${m}m`;
-  })(), 
-  class: 'bg-neonAmber/20 text-neonAmber' 
-},
+  { name: 'FOMC Rate Announcement Impact...', badge: '1d 1h 38m', class: 'bg-neonAmber/20 text-neonAmber' },
                 headlines: [
                     '[TrevorC Analytics] Gold futures remain in structural uptrend as key institutional momentum signals remain intact.'
                 ]
